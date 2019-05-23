@@ -1,0 +1,5 @@
+*  I3 Helpers (i3h)
+
+  A bunch of bash scripts to help manipulate i3.
+
+
