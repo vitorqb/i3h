@@ -1,0 +1,8 @@
+#!/bin/bash -e
+# Marks the current i3 window with a user-prompted input.
+# Reads from stdin unless an argument is parsed, in which case uses it.
+
+CURRENT_WINDOW_ID="$(i3h-focused-window | jq -rM '.window')"
+
+[ ! -z "$1" ] && MARK="$FIRST_ARG" || MARK="$(cat)"
+i3-msg "[id=$CURRENT_WINDOW_ID] mark $MARK"

@@ -1,0 +1,3 @@
+#!/bin/bash -e
+# Returns the json node for the currently focused window.
+i3-msg -t get_tree | jq -rM 'recurse(.nodes[]) | select(.focused==true)'

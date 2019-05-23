@@ -1,0 +1,5 @@
+#!/bin/bash
+# Toggles border between normal and none
+CURRENT_BRODER="$(i3h-focused-window | jq -rM '.border')"
+
+[ "$CURRENT_BRODER" == "normal" ] && i3-msg border none || i3-msg border normal

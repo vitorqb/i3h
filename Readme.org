@@ -1,5 +1,18 @@
 *  I3 Helpers (i3h)
 
-  A bunch of bash scripts to help manipulate i3.
+  A bunch of small wrappers around i3-msg using jq to get some
+  shortcuts to i3 functionalities I use very often.
 
+** Install
+
+   I usually have ~/.local/bin/ in my $PATH, and installing is as simple
+   as copying all files from ./i3h to there:
+
+#+begin_src shell
+cp -v ./i3h/* ~/.local/bin/ 
+#+end_src
+
+** Requirements
+   
+   Requires [[https://stedolan.github.io/jq/][jq]].
 

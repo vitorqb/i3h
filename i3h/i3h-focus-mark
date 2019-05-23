@@ -1,0 +1,6 @@
+#!/bin/bash
+# Focus the window with a specific mark.
+# Get's input from the first argument if preset, else from stdin.
+
+[ -z "$1" ] && MARK="$(cat)" || MARK="$1"
+i3-msg '[con_mark="^'"$MARK"'$"] focus'

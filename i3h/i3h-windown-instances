@@ -1,0 +1,3 @@
+#!/bin/bash -e
+# Returns the `instance` window property for all windows.
+i3-msg -t get_tree | jq -rM 'recurse(.nodes[]) | select(.window_properties!=null) | .window_properties.instance'
