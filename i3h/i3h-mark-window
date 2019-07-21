@@ -4,5 +4,5 @@
 
 CURRENT_WINDOW_ID="$(i3h-focused-window | jq -rM '.window')"
 
-[ ! -z "$1" ] && MARK="$FIRST_ARG" || MARK="$(cat)"
+[ ! -z "$1" ] && MARK="$1" || MARK="$(cat)"
 i3-msg "[id=$CURRENT_WINDOW_ID] mark $MARK"
