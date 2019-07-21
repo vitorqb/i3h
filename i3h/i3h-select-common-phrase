@@ -1,0 +1,75 @@
+#!/bin/bash
+USAGE="
+$0"'
+
+Displays the common phrases and asks the user to select one.
+Reads from ~/.config/i3h/common-phrases.json.
+Writes user questions to file descriptor 1, and the answer to file descriptor 3.'
+
+# Globals
+CONFIG_FILE=~/.config/i3h/common-phrases.json
+
+# Usage
+if [ ! -r "$CONFIG_FILE" ]
+then
+    echo "Missing config file?" 1>&2
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+if [ ! "$#" = "0" ]
+then
+    echo "Unexpected arguments" 1>&2
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+# Functions
+function runJq() {
+    local jqArg="$1"
+    jq -r "$jqArg" "$CONFIG_FILE"
+}
+
+function countRows() {
+    runJq length
+}
+
+function printOptions() {
+    echo "Select one of the shortcuts:"
+    local rows_count=`countRows`
+    local loop_end="$(expr "$rows_count" - 1)"
+    for i in `seq 0 $loop_end`
+    do
+        echo -n "$(runJq '.['"$i"'] | .shortcut')"
+        echo -n " -> "
+        echo "$(runJq '.['"$i"'] | .phrase')"
+    done
+}
+
+function assertValidResponse() {
+    local jqargs='[.[] | select(.shortcut=="'"$1"'")] | length'
+    local match_count="$(runJq "$jqargs")"
+
+    if [[ "$match_count" -gt 1 ]]
+    then
+        echo "ERROR: More than one match for a single shortcut?" 1>&2
+        exit 1
+    elif [ "$match_count" = "0" ]
+    then    
+        echo "ERROR: No match for chosen shortcut" 1>&2
+        exit 1
+    fi
+}
+
+function readResponse() {
+    read -sn1 RESPONSE </dev/tty
+    assertValidResponse "$RESPONSE"
+}
+
+function writeChosenToFileDescriptionThree() {
+    local jqargs='[.[] | select(.shortcut=="'"$RESPONSE"'")] | .[0] | .phrase'
+    runJq "$jqargs" >&3
+}
+
+# Prompts the user
+printOptions && readResponse && writeChosenToFileDescriptionThree
