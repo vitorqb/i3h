@@ -1,23 +1,43 @@
 #!/bin/bash
-USAGE="$0"' PHRASE
-Send the keys on `PHRASE` to the currently focused windows, as if the user had
-typed them.
-
+USAGE="$0"' [--window|-w WINDOW] PHRASE
+Send the keys on `PHRASE` to WINDOW, as if the user had typed them.
+WINDOW defaults to `i3h-focused-window | jq .window`.
 PHRASE can be also read from stdin.'
 
-# Usage
-if [[ "$#" -gt 1 ]]
-then
-    echo "ERROR: Too many arguments ($#)" 1>&2
-    echo "$USAGE" 1>&2
-    exit 1
-fi
+# getopts
+SHORT='w:'
+LONG='window:'
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+# defaults
+WINDOW="$(i3h-focused-window | jq '.window')"
+
+# parses
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        --window|-w)
+            WINDOW="$2"
+            shift
+            shift
+            ;;
+        --)
+            shift
+            PHRASE="$@"
+            break
+            ;;
+        *)
+            echo "ERROR: INVALID ARGUMENTS" 1>&2
+            echo "$USAGE" 1>&2
+            exit 1;
+            ;;
+    esac
+done
 
 # Captures stdin if needed
-[ "$#" = "0" ] && PHRASE="$(cat)" || PHRASE="$1"
-
-# Capture variables
-WINDOW="$(i3h-focused-window | jq '.window')"
+[ -z "$PHRASE" ] && PHRASE="$(cat)"
 
 # Script
 sleep 0.5 && xdotool type --delay 75 --window "$WINDOW" "$PHRASE"
