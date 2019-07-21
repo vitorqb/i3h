@@ -1,19 +1,23 @@
 #!/bin/bash
 USAGE="$0"' PHRASE
 Send the keys on `PHRASE` to the currently focused windows, as if the user had
-typed them.'
+typed them.
+
+PHRASE can be also read from stdin.'
 
 # Usage
-if ! [ "$#" = "1" ]
+if [[ "$#" -gt 1 ]]
 then
-    echo "ERROR: Expected exactly one argument" 1>&2
+    echo "ERROR: Too many arguments ($#)" 1>&2
     echo "$USAGE" 1>&2
     exit 1
 fi
 
+# Captures stdin if needed
+[ "$#" = "0" ] && PHRASE="$(cat)" || PHRASE="$1"
+
 # Capture variables
 WINDOW="$(i3h-focused-window | jq '.window')"
-PHRASE="$1"
 
 # Script
 sleep 0.5 && xdotool type --delay 75 --window "$WINDOW" "$PHRASE"
