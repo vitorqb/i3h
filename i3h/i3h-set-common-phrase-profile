@@ -1,0 +1,37 @@
+#!/bin/bash
+USAGE="$0 [PROFILE]"'
+Sets a profile for i3h-common-phrases.
+The profile must be a file in `~/.config/i3h/common-phrases-profiles/<name>.json`.
+We simply creates a simbolic link to it, from `~/.config/i3h/common-phrases.json`.'
+
+# Usage
+if ! [ "$#" = "1" ]
+then
+    echo "ERROR: Exactly one argument is expected" 1>&2
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+# Parsing
+PROFILE_FILE=~/.config/i3h/common-phrases-profiles/"${1}.json"
+CONFIG_FILE=~/.config/i3h/common-phrases.json
+
+# Checks
+
+# If the config file exists and is not a symbolic link error
+if [ -f "$CONFIG_FILE" ] && [ ! -L "$CONFIG_FILE" ]
+then
+    echo "ERROR: The config file '$CONFIG_FILE' is not a symbolic link" 1>&2
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+# If no profile found, errors
+if [ ! -r "$PROFILE_FILE" ]
+then
+    echo "ERROR: Could not find a readable file in '$PROFILE_FILE'" 1>&2
+    echo "$USAGE" 1>&2
+    exit 2
+fi
+
+rm -f "$CONFIG_FILE" && ln -s "$PROFILE_FILE" "$CONFIG_FILE"
