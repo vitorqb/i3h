@@ -1,75 +1,79 @@
-#!/bin/bash
-USAGE="
-$0"'
+#!/bin/env python3
+import os
+import json
+import sys
+import tty
+import termios
+
+USAGE = f"""
+{__file__}
 
 Displays the common phrases and asks the user to select one.
 Reads from ~/.config/i3h/common-phrases.json.
-Writes user questions to file descriptor 1, and the answer to file descriptor 3.'
+Writes user questions to file descriptor 1, and the answer to file descriptor 3."""
 
-# Globals
-CONFIG_FILE=~/.config/i3h/common-phrases.json
+CONFIG_FILE = os.path.abspath(os.path.expanduser("~/.config/i3h/common-phrases.json"))
 
-# Usage
-if [ ! -r "$CONFIG_FILE" ]
-then
-    echo "Missing config file?" 1>&2
-    echo "$USAGE" 1>&2
-    exit 1
-fi
 
-if [ ! "$#" = "0" ]
-then
-    echo "Unexpected arguments" 1>&2
-    echo "$USAGE" 1>&2
-    exit 1
-fi
+def is_file(f):
+    return os.path.isfile(f)
 
-# Functions
-function runJq() {
-    local jqArg="$1"
-    jq -r "$jqArg" "$CONFIG_FILE"
-}
 
-function countRows() {
-    runJq length
-}
+def is_readable(f):
+    return os.access(f, os.R_OK, follow_symlinks=True)
 
-function printOptions() {
-    echo "Select one of the shortcuts:"
-    local rows_count=`countRows`
-    local loop_end="$(expr "$rows_count" - 1)"
-    for i in `seq 0 $loop_end`
-    do
-        echo -n "$(runJq '.['"$i"'] | .shortcut')"
-        echo -n " -> "
-        echo "$(runJq '.['"$i"'] | .phrase')"
-    done
-}
 
-function assertValidResponse() {
-    local jqargs='[.[] | select(.shortcut=="'"$1"'")] | length'
-    local match_count="$(runJq "$jqargs")"
+def exit_err(msg):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    print(USAGE, file=sys.stderr)
+    exit(1)
 
-    if [[ "$match_count" -gt 1 ]]
-    then
-        echo "ERROR: More than one match for a single shortcut?" 1>&2
-        exit 1
-    elif [ "$match_count" = "0" ]
-    then    
-        echo "ERROR: No match for chosen shortcut" 1>&2
-        exit 1
-    fi
-}
 
-function readResponse() {
-    read -sn1 RESPONSE </dev/tty
-    assertValidResponse "$RESPONSE"
-}
+def print_option(option):
+    print(f"{option['shortcut']} -> {option['phrase']}", flush=True)
 
-function writeChosenToFileDescriptionThree() {
-    local jqargs='[.[] | select(.shortcut=="'"$RESPONSE"'")] | .[0] | .phrase'
-    runJq "$jqargs" >&3
-}
 
-# Prompts the user
-printOptions && readResponse && writeChosenToFileDescriptionThree
+def getch():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+
+if __name__ == "__main__":
+
+    # Check args
+    if len(sys.argv) > 1:
+        exit_err("No arguments are expected")
+        exit(1)
+
+    # Check if file is readable
+    if not is_file(CONFIG_FILE) or not is_readable(CONFIG_FILE):
+        exit_err(f"{CONFIG_FILE} is not a (readable) file")
+        exit(1)
+
+    # Loads
+    with open(CONFIG_FILE) as f:
+        options = json.load(f)
+
+    # Print opts
+    print('Select one of the shortcuts:', flush=True)
+    for option in options:
+        print_option(option)
+
+    # Prompts for selection
+    selected = getch()
+
+    # Captures selected
+    try:
+        selected_phrase = next(o['phrase'] for o in options if o['shortcut'] == selected)
+    except StopIteration:
+        exit_err("Invalid shortcut!")
+        exit(1)
+
+    # Writes answer to file descriptor 3
+    os.write(3, selected_phrase.encode())
