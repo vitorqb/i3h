@@ -1,0 +1,11 @@
+#!/bin/sh
+USAGE="$0"' workspace-name
+Go to workspace name, if not there already.'
+
+WORKSPACE_NAME="$1"
+CURRENT_WORKSPACE="$(i3h-current-workspace)"
+
+if ! [ "$WORKSPACE_NAME" = "$CURRENT_WORKSPACE" ]
+then
+    i3-msg "workspace $WORKSPACE_NAME"
+fi
