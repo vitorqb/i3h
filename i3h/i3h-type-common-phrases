@@ -1,6 +1,6 @@
 #!/bin/bash
 USAGE="
-$0"' [--hide-window-after-prompt|-h] ...args
+$0"' [--hide-window-after-prompt|-h] -- ...args
 Prompts the user to select a common phrase using `i3h-select-common-phrase` and pipes the
 selected phrase to `i3h-type` stdin. `args` are given to i3h-type as-is.
 If `hide-window-after-prompt` is set, hides the window after calling `i3h-select-common-phrase`.'
@@ -19,7 +19,7 @@ HIDE_WINDOW=0
 while [[ "$#" -gt 0 ]]
 do
     case "$1" in
-        -h|--help)
+        --help)
             echo "$USAGE"
             exit 1
             ;;

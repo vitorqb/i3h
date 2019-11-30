@@ -1,0 +1,32 @@
+#!/bin/bash -e
+USAGE="$0"'
+Uses `zenity` to prompt the user for a mark and pipes it to `i3h-mark-window`.'
+
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+# Script
+set -e
+! which zenity 1>/dev/null 2>&1 && { echo "ERROR: Missing zenity dependency!" ; echo "$USAGE" ; } 1>&2 && exit 1
+zenity --entry --title "Enter mark" --text "Enter a mark for the window" | i3h-mark-window
