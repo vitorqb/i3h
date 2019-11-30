@@ -2,9 +2,36 @@
 USAGE="$0"' workspace-name
 Go to workspace name, if not there already.'
 
-WORKSPACE_NAME="$1"
-CURRENT_WORKSPACE="$(i3h-current-workspace)"
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
 
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            WORKSPACE_NAME="$@"
+            break
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+[ -z "$WORKSPACE_NAME" ] && { echo "ERROR: Missing workspace" ; echo "$USAGE" ; } 1>&2 && exit 1
+
+# Script
+CURRENT_WORKSPACE="$(i3h-current-workspace)"
 if ! [ "$WORKSPACE_NAME" = "$CURRENT_WORKSPACE" ]
 then
     i3-msg "workspace $WORKSPACE_NAME"

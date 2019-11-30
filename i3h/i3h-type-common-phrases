@@ -1,14 +1,13 @@
 #!/bin/bash
 USAGE="
-$0"' [--hide-window-after-prompt|-h] [--write-to-window|-w WRITE_WINDOW]
-Prompts the user to select a common phrase and type it into `WRITE_WINDOW`.
-Combines `i3h-select-common-phrase` and `i3h-type`.
-If `hide-window-after-prompt` is set, hides the window after calling `3h-select-common-phrase`.
-The `WRITE_WINDOW` is passed to `i3h-type`.'
+$0"' [--hide-window-after-prompt|-h] ...args
+Prompts the user to select a common phrase using `i3h-select-common-phrase` and pipes the
+selected phrase to `i3h-type` stdin. `args` are given to i3h-type as-is.
+If `hide-window-after-prompt` is set, hides the window after calling `i3h-select-common-phrase`.'
 
 # getopt
-SHORT="h,w:"
-LONG="hide-window,write-to-window:"
+SHORT="h"
+LONG="hide-window,help"
 OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
 ! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
 eval set -- "$OPTS"
@@ -20,17 +19,18 @@ HIDE_WINDOW=0
 while [[ "$#" -gt 0 ]]
 do
     case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
         --hide-window|-h)
             HIDE_WINDOW=1
             shift
             ;;
-        --write-to-window|-w)
-            WRITE_TO_WINDOW="$2"
-            shift
-            shift
-            ;;
         --)
+            # Save "$@" for i3h-type
             shift
+            break
             ;;
         *)
             echo "ERROR: INVALID ARGUMENTS" 1>&2
@@ -39,14 +39,6 @@ do
             ;;
     esac
 done
-
-# Ensures args
-if [ -z "$WRITE_TO_WINDOW" ]
-then
-    echo "ERROR: Missing WRITE_TO_WINDOW" 1>&2
-    echo "$USAGE" 1>&2
-    exit 1
-fi
 
 # Globals
 TMPFILE=`mktemp`

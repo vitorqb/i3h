@@ -1,5 +1,31 @@
 #!/bin/bash
-# Toggles border between normal and none
-CURRENT_BRODER="$(i3h-focused-window | jq -rM '.border')"
+USAGE="$0"'
+Returns all i3 marks, separated by newlines.'
 
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+# Script
+CURRENT_BRODER="$(i3h-focused-window | jq -rM '.border')"
 [ "$CURRENT_BRODER" == "normal" ] && i3-msg border none || i3-msg border normal

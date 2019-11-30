@@ -5,8 +5,8 @@ WINDOW defaults to `i3h-focused-window | jq .window`.
 PHRASE can be also read from stdin.'
 
 # getopts
-SHORT='w:'
-LONG='window:'
+SHORT='w:h'
+LONG='window:,help'
 OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
 ! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
 eval set -- "$OPTS"
@@ -18,6 +18,10 @@ WINDOW="$(i3h-focused-window | jq '.window')"
 while [[ "$#" -gt 0 ]]
 do
     case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
         --window|-w)
             WINDOW="$2"
             shift

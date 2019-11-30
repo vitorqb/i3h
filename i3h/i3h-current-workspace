@@ -1,2 +1,30 @@
 #!/bin/sh
+USAGE="$0"'
+Returns the name of the current workspace.'
+
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+# Script
 i3-msg -t get_workspaces | jq -r '.[] | select(.focused==true).name' | tr -d '\n'

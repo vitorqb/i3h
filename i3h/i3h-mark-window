@@ -1,8 +1,35 @@
 #!/bin/bash -e
-# Marks the current i3 window with a user-prompted input.
-# Reads from stdin unless an argument is parsed, in which case uses it.
+USAGE="$0"' [MARK]
+Marks the current i3 window with a user-prompted input.
+Reads from stdin unless an argument is parsed, in which case uses it.'
 
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            MARK="$@"
+            break
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+# Script
 CURRENT_WINDOW_ID="$(i3h-focused-window | jq -rM '.window')"
-
-[ ! -z "$1" ] && MARK="$1" || MARK="$(cat)"
+[ -z "$MARK" ] && MARK="$(cat)"
 i3-msg "[id=$CURRENT_WINDOW_ID] mark $MARK"

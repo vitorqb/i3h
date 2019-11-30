@@ -4,16 +4,35 @@ Sets a profile for i3h-common-phrases.
 The profile must be a file in `~/.config/i3h/common-phrases-profiles/<name>.json`.
 We simply creates a simbolic link to it, from `~/.config/i3h/common-phrases.json`.'
 
-# Usage
-if ! [ "$#" = "1" ]
-then
-    echo "ERROR: Exactly one argument is expected" 1>&2
-    echo "$USAGE" 1>&2
-    exit 1
-fi
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            shift
+            PROFILE="$@"
+            break
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
 
 # Parsing
-PROFILE_FILE=~/.config/i3h/common-phrases-profiles/"${1}.json"
+[ -z "$PROFILE" ] && { echo "ERROR: Missing PROFILE" ; echo "$USAGE" ; } 1>&2 && exit 1
+PROFILE_FILE=~/.config/i3h/common-phrases-profiles/"${PROFILE}.json"
 CONFIG_FILE=~/.config/i3h/common-phrases.json
 
 # Checks

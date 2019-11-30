@@ -1,18 +1,38 @@
 #!/bin/bash -e
-
-USAGE="\
-USAGE:
-  my-i3-move-workspaces-to-output <min_workspace_number> <output>
-DESCRIPTION:
-  Move all workspaces higher or equal than <min_workspace_number> to a specific <output>.
+USAGE="$0 min_workspace_number output
+Move all workspaces higher or equal than <min_workspace_number> to a specific <output>.
 EXAMPLE:
-  my-i3-move-workspaces-to-output 4 DP-1
-"
+  my-i3-move-workspaces-to-output 4 DP-1"
 
-[ ! "$#" = "2" ] && echo "$USAGE" 1>&2 && exit 1
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
 
-MIN_WORKSPACE="$1"
-TARGET_OUTPUT="$2"
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            MIN_WORKSPACE="$2"
+            TARGET_OUTPUT="$3"
+            break
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+# Script
+[ -z $MIN_WORKSPACE ] && { echo "ERROR: Missing min_workspace" ; echo "$USAGE" ; } 1>&2 && exit 1
+[ -z $TARGET_OUTPUT ] && { echo "ERROR: Missing output" ; echo "$USAGE" ; } 1>&2 && exit 1
 WORKSPACES="$(i3-msg -t get_workspaces | jq '.[].num')"
 
 while read i

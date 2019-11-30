@@ -1,6 +1,33 @@
 #!/bin/bash
-# Focus the window with a specific mark.
-# Get's input from the first argument if preset, else from stdin.
+USAGE="$0"' [MARK]
+Marks the focused windows with MARK. 
+If no mark is given, reads from stdin.'
 
-[ -z "$1" ] && MARK="$(cat)" || MARK="$1"
+# Parsing
+SHORT="h"
+LONG="help"
+OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
+! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
+eval set -- "$OPTS"
+
+while [[ "$#" -gt 0 ]]
+do
+    case "$1" in
+        -h|--help)
+            echo "$USAGE"
+            exit 1
+            ;;
+        --)
+            # Leave it for later usage
+            shift
+            break
+            ;;
+        *)
+            { echo "ERROR: Unexpected parameter" ; echo "$USAGE" ; } 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+[ -z "$@" ] && MARK="$(cat)" || MARK="$@"
 i3-msg '[con_mark="^'"$MARK"'$"] focus'
