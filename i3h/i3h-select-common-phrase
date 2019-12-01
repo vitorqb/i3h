@@ -2,17 +2,26 @@
 import os
 import json
 import sys
-import tty
-import termios
+import subprocess
+import argparse
 
-USAGE = f"""
-{__file__}
+DESCRIPTION = """\
+Displays the common phrases and asks the user to select one. Returns the selected text.
+Depends on GTK+3."""
 
-Displays the common phrases and asks the user to select one.
-Reads from ~/.config/i3h/common-phrases.json.
-Writes user questions to file descriptor 1, and the answer to file descriptor 3."""
-
-CONFIG_FILE = os.path.abspath(os.path.expanduser("~/.config/i3h/common-phrases.json"))
+parser = argparse.ArgumentParser(description=DESCRIPTION)
+parser.add_argument(
+    '-c',
+    '--config-file',
+    default=os.path.abspath(os.path.expanduser("~/.config/i3h/common-phrases.json")),
+    help=("The json configuration file with the phrases to be read."
+          "Must be a json array with objects containing `shortcut` and `phrase`"),
+)
+parser.add_argument(
+    '--skwin-path',
+    help="Path to skwin executable",
+    default="/usr/lib/i3h/skwin"
+)
 
 
 def is_file(f):
@@ -25,48 +34,37 @@ def is_readable(f):
 
 def exit_err(msg):
     print(f"ERROR: {msg}", file=sys.stderr)
-    print(USAGE, file=sys.stderr)
     exit(1)
 
 
-def print_option(option):
-    print(f"{option['shortcut']} -> {option['phrase']}", flush=True)
+def option_to_str(option):
+    return f"{option['shortcut']} -> {option['phrase']}"
 
 
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
+def getch(args, prompt):
+    return subprocess.check_output(args.skwin_path, input=prompt.encode()).decode()
 
 
 if __name__ == "__main__":
 
     # Check args
-    if len(sys.argv) > 1:
-        exit_err("No arguments are expected")
-        exit(1)
+    args = parser.parse_args()
 
     # Check if file is readable
-    if not is_file(CONFIG_FILE) or not is_readable(CONFIG_FILE):
-        exit_err(f"{CONFIG_FILE} is not a (readable) file")
-        exit(1)
+    if not is_file(args.config_file) or not is_readable(args.config_file):
+        exit_err(f"{args.config_file} is not a (readable) file")
 
     # Loads
-    with open(CONFIG_FILE) as f:
+    with open(args.config_file) as f:
         options = json.load(f)
 
-    # Print opts
-    print('Select one of the shortcuts:', flush=True)
+    # Prepares prompt
+    prompt = 'Select one of the shortcuts:'
     for option in options:
-        print_option(option)
+        prompt += '\n' + option_to_str(option)
 
     # Prompts for selection
-    selected = getch()
+    selected = getch(args, prompt)
 
     # Captures selected
     try:
@@ -75,5 +73,5 @@ if __name__ == "__main__":
         exit_err("Invalid shortcut!")
         exit(1)
 
-    # Writes answer to file descriptor 3
-    os.write(3, selected_phrase.encode())
+    # Prints answer
+    print(selected_phrase, flush=True)

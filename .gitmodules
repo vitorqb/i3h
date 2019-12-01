@@ -1,0 +1,3 @@
+[submodule "skwin"]
+	path = skwin
+	url = git@github.com:vitorqb/skwin.git

@@ -1,19 +1,21 @@
 #!/bin/bash
 USAGE="
-$0"' [--hide-window-after-prompt|-h] -- ...args
+$0"' [--hide-window-after-prompt|-h] [--skwin-path SKWIN_PATH] -- ...args
 Prompts the user to select a common phrase using `i3h-select-common-phrase` and pipes the
 selected phrase to `i3h-type` stdin. `args` are given to i3h-type as-is.
-If `hide-window-after-prompt` is set, hides the window after calling `i3h-select-common-phrase`.'
+If `hide-window-after-prompt` is set, hides the window after calling `i3h-select-common-phrase`.
+`SKWIN_PATH` is passed to `i3h-select-common-phrase`'
 
 # getopt
 SHORT="h"
-LONG="hide-window,help"
+LONG="hide-window,help,skwin-path:"
 OPTS="$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")"
 ! [ "$?" = 0 ] && echo "$USAGE" 1>&2 && exit 1
 eval set -- "$OPTS"
 
 # Defaults
 HIDE_WINDOW=0
+SKWIN_PATH="/usr/lib/i3h/skwin"
 
 # parses
 while [[ "$#" -gt 0 ]]
@@ -25,6 +27,11 @@ do
             ;;
         --hide-window|-h)
             HIDE_WINDOW=1
+            shift
+            ;;
+        --skwin-path)
+            SKWIN_PATH="$2"
+            shift
             shift
             ;;
         --)
@@ -53,4 +60,4 @@ function maybeHideWindow() {
 }
 
 # Script
-i3h-select-common-phrase 3>"$TMPFILE" && maybeHideWindow && i3h-type "$@" <"$TMPFILE"
+i3h-select-common-phrase --skwin-path "$SKWIN_PATH" >"$TMPFILE" && maybeHideWindow && i3h-type "$@" <"$TMPFILE"

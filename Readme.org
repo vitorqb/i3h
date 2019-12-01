@@ -16,3 +16,4 @@ cp -v ./i3h/* ~/.local/bin/
    
    Requires [[https://stedolan.github.io/jq/][jq]].
 
+** TODO IMPROVE README
