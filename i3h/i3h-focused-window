@@ -27,4 +27,4 @@ do
 done
 
 # Script
-i3-msg -t get_tree | jq -rM 'recurse(.nodes[]) | select(.focused==true)'
+i3-msg -t get_tree | jq -rM 'recurse((.nodes + .floating_nodes)[]) | select(.focused==true)'
