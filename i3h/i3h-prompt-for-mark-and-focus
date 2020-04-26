@@ -1,0 +1,4 @@
+#!/bin/bash
+USAGE="$0"'
+Prompts the user to select a mark and focus the windows with this mark. Requires dmenu.'
+i3h-get-marks | dmenu -i -l 10 -fn 'Hack-38' | i3h-focus-mark 
